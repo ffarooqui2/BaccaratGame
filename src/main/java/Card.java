@@ -5,4 +5,12 @@ public class Card {
         this.suite = suite;
         this.value = value;
     }
+
+    public String getSuite (){
+        return this.suite;
+    }
+
+    public int getValue (){
+        return this.value;
+    }
 }
