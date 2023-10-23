@@ -20,13 +20,13 @@ public class BaccaratGameLogic {
         int total = 0;
 
         for (Card card : hand) {
-            total += card.value;
+            total += card.getValue();
         }
 
         return total % 10;
     }
     public boolean evaluateBankerDraw(ArrayList<Card> hand, Card playerCard){
-        int playerTotal = playerCard.value;
+        int playerTotal = playerCard.getValue();
         int bankerTotal = handTotal(hand);
 
         if (bankerTotal < 3){
