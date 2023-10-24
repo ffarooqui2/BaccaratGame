@@ -1,7 +1,15 @@
 import java.util.ArrayList;
 
 public class BaccaratDealer {
+
+
     private ArrayList<Card> deck;
+
+    public BaccaratDealer(){
+        deck = new ArrayList<Card>();
+        generateDeck();
+        shuffleDeck();
+    }
 
     public void generateDeck(){
         for (int i = 0; i < 4; i++){
@@ -41,7 +49,6 @@ public class BaccaratDealer {
             Card temp = deck.get(i);
             deck.set(i, deck.get(index));
             deck.set(index, temp);
-
         }
     }
 

@@ -40,7 +40,7 @@ public class BaccaratGame extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
-		primaryStage.setTitle("Welcome to JavaFX");
+		primaryStage.setTitle("Baccarat");
 		
 		 Rectangle rect = new Rectangle (100, 40, 100, 100);
 	     rect.setArcHeight(50);
@@ -68,9 +68,7 @@ public class BaccaratGame extends Application {
 	     root.setCenter(rect);
 	     
 	     Scene scene = new Scene(root, 700,700);
-			primaryStage.setScene(scene);
-			primaryStage.show();
-		
+		 primaryStage.setScene(scene);
+		 primaryStage.show();
 	}
-
 }
