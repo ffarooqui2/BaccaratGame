@@ -98,7 +98,7 @@ public class BaccaratGame extends Application {
 			playButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
 					"-fx-border-radius: 20px; " +
 					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0); " +
-					"-fx-border-color: #f83838; -fx-border-width: 1px;");
+					"-fx-border-color: #f83838; -fx-border-width: 3px;");
 		});
 
 		playButton.setOnMouseExited(e -> {
