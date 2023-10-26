@@ -225,6 +225,9 @@ class MyTest {
 		hand.add(card1);
 		hand.add(card2);
 
+
+		int paper;
+
 		assertFalse(logic.evaluatePlayerDraw(hand));
 
 	}
