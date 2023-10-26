@@ -52,7 +52,7 @@ public class BaccaratGame extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
-		primaryStage.setTitle("Baccarat");
+		primaryStage.setTitle("Baccarat something something...");
 
 		// Title for opening page
 		Text title = new Text("BACCARAT");
