@@ -52,7 +52,7 @@ public class BaccaratGame extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
-		primaryStage.setTitle("Baccarat something something...");
+		primaryStage.setTitle("Baccarat");
 
 		// Title for opening page
 		Text title = new Text("BACCARAT");
@@ -98,9 +98,19 @@ public class BaccaratGame extends Application {
 
 		// BET
 		BorderPane root2 = new BorderPane();
-		TextField playerBet = new TextField("$0.00");
+		TextField playerBet = new TextField("0.00");
+
+		playerBet.setOnKeyPressed(e -> {
+			System.out.println("Line 103: " + playerBet.getText());
+		});
+
+		double playerValue = Double.parseDouble(playerBet.getText());
+		playerBet.setText(Double.toString(playerValue));
 		playerBet.setPrefWidth(200);
-		TextField bankerBet = new TextField("$0.00");
+
+		TextField bankerBet = new TextField("0.00");
+		double bankerValue = Double.parseDouble(bankerBet.getText());
+		bankerBet.setText(Double.toString(bankerValue));
 		bankerBet.setPrefWidth(200);
 
 		HBox bettingPageContent = new HBox();
@@ -115,5 +125,7 @@ public class BaccaratGame extends Application {
 		scene2 = new Scene(root2, 1920, 1080);
 		primaryStage.setScene(scene1);
 		primaryStage.show();
+
 	}
+
 }
