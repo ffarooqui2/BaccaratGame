@@ -1,7 +1,3 @@
-import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
-import javafx.animation.RotateTransition;
-import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,14 +7,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import javafx.util.Duration;
-
-import java.awt.*;
-import java.sql.SQLClientInfoException;
 import java.util.ArrayList;
 
 
@@ -131,6 +121,7 @@ public class BaccaratGame extends Application {
 		bettingPageContent.setAlignment(Pos.CENTER);
 
 
+		// Continue to the actual game
 		Button continueButton = new Button();
 		Text continueButtonTitle = new Text("Continue");
 		continueButton.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
@@ -142,7 +133,7 @@ public class BaccaratGame extends Application {
 
 		continueButton.setOnAction(e -> primaryStage.setScene(scene3));
 
-		// Hovering over play button
+		// Hovering over continue button
 		continueButton.setOnMouseEntered(e -> {
 			continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
 					"-fx-border-radius: 20px; " +
@@ -155,7 +146,6 @@ public class BaccaratGame extends Application {
 					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
 		});
 
-
 		HBox continueButtonContent = new HBox(20);
 		continueButtonContent.getChildren().add(continueButton);
 		continueButtonContent.setAlignment(Pos.CENTER);
@@ -163,6 +153,8 @@ public class BaccaratGame extends Application {
 		BorderPane root2 = new BorderPane();
 		root2.setCenter(bettingPageContent);
 		root2.setBottom(continueButtonContent);
+
+
 
 		BorderPane root3 = new BorderPane();
 
