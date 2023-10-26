@@ -8,12 +8,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.TextAlignment;
@@ -21,6 +18,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.awt.*;
+import java.sql.SQLClientInfoException;
 import java.util.ArrayList;
 
 
@@ -32,6 +30,8 @@ public class BaccaratGame extends Application {
 	private BaccaratGameLogic gameLogic;
 	private double currentBet;
 	private double totalWinnings;
+
+	Scene scene1, scene2;
 
 	public double evaluateWinnings(){
 		return 0;
@@ -51,30 +51,7 @@ public class BaccaratGame extends Application {
 	//feel free to remove the starter code from this method
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-//		 Rectangle rect = new Rectangle (100, 40, 100, 100);
-//	     rect.setArcHeight(50);
-//	     rect.setArcWidth(50);
-//	     rect.setFill(Color.VIOLET);
-//
-//	     RotateTransition rt = new RotateTransition(Duration.millis(5000), rect);
-//	     rt.setByAngle(270);
-//	     rt.setCycleCount(4);
-//	     rt.setAutoReverse(true);
-//	     SequentialTransition seqTransition = new SequentialTransition (
-//	         new PauseTransition(Duration.millis(500)),
-//	         rt
-//	     );
-//	     seqTransition.play();
-//
-//	     FadeTransition ft = new FadeTransition(Duration.millis(5000), rect);
-//	     ft.setFromValue(1.0);
-//	     ft.setToValue(0.3);
-//	     ft.setCycleCount(4);
-//	     ft.setAutoReverse(true);
-//
-//	     ft.play();
 
-		// TODO Auto-generated method stub
 		primaryStage.setTitle("Baccarat");
 
 		// Title for opening page
@@ -92,6 +69,8 @@ public class BaccaratGame extends Application {
 							"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
 		playButton.setPadding(new Insets(10, 20, 10, 20));
 		playButton.setPrefSize(200, 50);
+
+		playButton.setOnAction(e -> primaryStage.setScene(scene2));
 
 		// Hovering over play button
 		playButton.setOnMouseEntered(e -> {
@@ -116,8 +95,24 @@ public class BaccaratGame extends Application {
 		BorderPane root1 = new BorderPane();
 		root1.setCenter(homePageContent);
 
+
+		// BET
+		BorderPane root2 = new BorderPane();
+		TextField playerBet = new TextField("$0.00");
+		playerBet.setPrefWidth(200);
+		TextField bankerBet = new TextField("$0.00");
+		bankerBet.setPrefWidth(200);
+
+		HBox bettingPageContent = new HBox();
+		bettingPageContent.setSpacing(200);
+		bettingPageContent.getChildren().addAll(playerBet, bankerBet);
+		bettingPageContent.setAlignment(Pos.CENTER);
+		root2.setCenter(bettingPageContent);
+
+
 		// put root on the scene which goes on to the stage
-		Scene scene1 = new Scene(root1, 1920,1080);
+		scene1 = new Scene(root1, 1920,1080);
+		scene2 = new Scene(root2, 1920, 1080);
 		primaryStage.setScene(scene1);
 		primaryStage.show();
 	}
