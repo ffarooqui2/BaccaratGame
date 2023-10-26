@@ -1,7 +1,3 @@
-import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
-import javafx.animation.RotateTransition;
-import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,14 +7,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import javafx.util.Duration;
-
-import java.awt.*;
-import java.sql.SQLClientInfoException;
 import java.util.ArrayList;
 
 
@@ -31,7 +21,7 @@ public class BaccaratGame extends Application {
 	private double currentBet;
 	private double totalWinnings;
 
-	Scene scene1, scene2;
+	Scene scene1, scene2, scene3;
 
 	public double evaluateWinnings(){
 		return 0;
@@ -39,17 +29,10 @@ public class BaccaratGame extends Application {
 
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		System.out.println("Hello World");
-		System.out.println("Hello Faaiz");
-
-		BaccaratDealer dealer = new BaccaratDealer();
-		System.out.println(dealer.deckSize());
 		launch(args);
 	}
 
-
-	//feel free to remove the starter code from this method
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
@@ -96,25 +79,92 @@ public class BaccaratGame extends Application {
 		BorderPane root1 = new BorderPane();
 		root1.setCenter(homePageContent);
 
+		Text playerTitle = new Text("PLAYER");
+		playerTitle.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
+		Text bankerTitle = new Text("BANKER");
+		bankerTitle.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
 
-		// BET
-		BorderPane root2 = new BorderPane();
-		TextField playerBet = new TextField("$0.00");
+		// Input Boxes for Player or Banker
+		TextField playerBet = new TextField("0.00");
+		TextField bankerBet = new TextField("0.00");
+
+		playerBet.setOnKeyPressed(e -> {
+			bankerBet.clear();
+			System.out.println("Player's Bet: " + playerBet.getText());
+		});
 		playerBet.setPrefWidth(200);
-		TextField bankerBet = new TextField("$0.00");
+
+		bankerBet.setOnKeyPressed(e -> {
+			playerBet.clear();
+			System.out.println("Banker's Bet: " + bankerBet.getText());
+		});
 		bankerBet.setPrefWidth(200);
 
+
+		// Put Input Boxes in Container
 		HBox bettingPageContent = new HBox();
 		bettingPageContent.setSpacing(200);
-		bettingPageContent.getChildren().addAll(playerBet, bankerBet);
-		bettingPageContent.setAlignment(Pos.CENTER);
-		root2.setCenter(bettingPageContent);
 
+		VBox playerInputContent = new VBox();
+		playerInputContent.setSpacing(20);
+
+		VBox bankerInputContent = new VBox();
+		bankerInputContent.setSpacing(20);
+
+		playerInputContent.getChildren().addAll(playerTitle, playerBet);
+		playerInputContent.setAlignment(Pos.CENTER);
+
+		bankerInputContent.getChildren().addAll(bankerTitle, bankerBet);
+		bankerInputContent.setAlignment(Pos.CENTER);
+
+		bettingPageContent.getChildren().addAll(playerInputContent, bankerInputContent);
+		bettingPageContent.setAlignment(Pos.CENTER);
+
+
+		// Continue to the actual game
+		Button continueButton = new Button();
+		Text continueButtonTitle = new Text("Continue");
+		continueButton.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
+		continueButton.setGraphic(continueButtonTitle);
+		continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+				"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
+		continueButton.setPadding(new Insets(10, 20, 10, 20));
+		continueButton.setPrefSize(200, 50);
+
+		continueButton.setOnAction(e -> primaryStage.setScene(scene3));
+
+		// Hovering over continue button
+		continueButton.setOnMouseEntered(e -> {
+			continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+					"-fx-border-radius: 20px; " +
+					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0); " +
+					"-fx-border-color: #497dfc; -fx-border-width: 3px;");
+		});
+
+		continueButton.setOnMouseExited(e -> {
+			continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
+		});
+
+		HBox continueButtonContent = new HBox(20);
+		continueButtonContent.getChildren().add(continueButton);
+		continueButtonContent.setAlignment(Pos.CENTER);
+
+		BorderPane root2 = new BorderPane();
+		root2.setCenter(bettingPageContent);
+		root2.setBottom(continueButtonContent);
+
+
+
+		BorderPane root3 = new BorderPane();
 
 		// put root on the scene which goes on to the stage
 		scene1 = new Scene(root1, 1920,1080);
 		scene2 = new Scene(root2, 1920, 1080);
+		scene3 = new Scene(root3, 1920, 1080);
 		primaryStage.setScene(scene1);
 		primaryStage.show();
+
 	}
+
 }
