@@ -158,6 +158,8 @@ public class BaccaratGame extends Application {
 
 		BorderPane root3 = new BorderPane();
 
+		int document;
+
 		// put root on the scene which goes on to the stage
 		scene1 = new Scene(root1, 1920,1080);
 		scene2 = new Scene(root2, 1920, 1080);
