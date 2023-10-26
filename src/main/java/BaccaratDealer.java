@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class BaccaratDealer {
 
@@ -32,8 +33,8 @@ public class BaccaratDealer {
 
     public ArrayList<Card> dealHand(){
         ArrayList<Card> deal = new ArrayList<>(2);
-        deal.set(0, deck.remove(0));
-        deal.set(1, deck.remove(0));
+        deal.add(0, deck.remove(0));
+        deal.add(1, deck.remove(0));
 
         return deal;
     }
@@ -43,13 +44,7 @@ public class BaccaratDealer {
     }
 
     public void shuffleDeck(){
-        for (int i = 0; i < deck.size(); i++){
-            int index = (int) (Math.random() * deck.size());
-
-            Card temp = deck.get(i);
-            deck.set(i, deck.get(index));
-            deck.set(index, temp);
-        }
+        Collections.shuffle(deck);
     }
 
     public int deckSize(){

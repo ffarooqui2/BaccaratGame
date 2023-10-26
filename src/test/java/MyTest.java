@@ -213,6 +213,19 @@ class MyTest {
 		hand.add(card1);
 		hand.add(card2);
 
+		assertTrue(logic.evaluatePlayerDraw(hand));
+
+	}
+	@Test
+	void evaluatePlayerDraw2(){
+		Card card1 = new Card("Hearts", 3);
+		Card card2 = new Card("Spades", 4);
+
+		ArrayList<Card> hand = new ArrayList <>();
+		hand.add(card1);
+		hand.add(card2);
+
+		assertFalse(logic.evaluatePlayerDraw(hand));
 
 	}
 
