@@ -1,6 +1,20 @@
 
 import java.util.ArrayList;
 public class BaccaratGameLogic {
+
+    public int handTotal(ArrayList<Card> hand){
+        int total = 0;
+        int val = 0;
+
+        for (Card card : hand) {
+            val = card.getValue();
+            if (val< 10)
+                total += val;
+        }
+
+        return total % 10;
+    }
+
     public String whoWon(ArrayList<Card> hand1, ArrayList<Card> hand2){
 
         int playerHand = handTotal(hand1);
@@ -16,18 +30,7 @@ public class BaccaratGameLogic {
             return "Banker";
         }
     }
-    public int handTotal(ArrayList<Card> hand){
-        int total = 0;
-        int val = 0;
 
-        for (Card card : hand) {
-            val = card.getValue();
-            if (val< 10)
-                total += val;
-        }
-
-        return total % 10;
-    }
     public boolean evaluateBankerDraw(ArrayList<Card> hand, Card playerCard){
         int playerTotal = playerCard.getValue();
         int bankerTotal = handTotal(hand);
