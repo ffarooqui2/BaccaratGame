@@ -32,7 +32,7 @@ public class BaccaratDealer {
     }
 
     public ArrayList<Card> dealHand(){
-        ArrayList<Card> deal = new ArrayList<>(2);
+        ArrayList<Card> deal = new ArrayList<>(3);
         deal.add(0, deck.remove(0));
         deal.add(1, deck.remove(0));
 

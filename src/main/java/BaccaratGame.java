@@ -276,27 +276,73 @@ public class BaccaratGame extends Application {
 			// Stop game
 		}
 
+
+		// DRAW CARD BUTTON
 		Button drawCardButton = new Button("DRAW");
 		HBox gameBottomMenu = new HBox(150);
 		gameBottomMenu.setPadding(new Insets(20, 20, 20, 20));
 		gameBottomMenu.getChildren().add(drawCardButton);
 
+
+		// DRAW CARD ACTION
 		drawCardButton.setOnAction(e -> {
-			playerHand.add(theDealer.drawOne());
-			Image playerCard3 = new Image(playerHand.get(2).getValue()+  "_of_" + playerHand.get(2).getSuite().toLowerCase() + ".png");
-			ImageView playerCard3ImageView = new ImageView(playerCard1);
-			playerCard3ImageView.setFitWidth(100); // Set the desired width
-			playerCard3ImageView.setFitHeight(150); // Set the desired height
+			if (gameLogic.evaluatePlayerDraw(playerHand)) {
+				if (playerHand.size() != 3) { // Allowing only one card to be drawn
+					Card drawnCard = theDealer.drawOne();
+					playerHand.add(drawnCard);
 
-			playersCardContainer.getChildren().add(playerCard3ImageView);
-			playerTotal = gameLogic.handTotal(playerHand);
-			playerTotalText = new Text("Player Total: " + playerTotal);
-			playerTotalText.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
-			playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
-			playersGameContent.setAlignment(Pos.CENTER);
+					String cardImagePath = drawnCard.getValue() + "_of_" + drawnCard.getSuite().toLowerCase() + ".png";
+					Image playerCardImage = new Image(cardImagePath);
+					ImageView playerCardImageView = new ImageView(playerCardImage);
+					playerCardImageView.setFitWidth(100);
+					playerCardImageView.setFitHeight(150);
 
-			System.out.println("Winner" + gameLogic.whoWon(playerHand, bankerHand));
+					playersCardContainer.getChildren().add(playerCardImageView);
+
+					int playerTotal = gameLogic.handTotal(playerHand);
+					playerTotalText.setText("Player Total: " + playerTotal);
+
+					playersGameContent.getChildren().clear(); // Clear previous content
+					playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
+					playersGameContent.setAlignment(Pos.CENTER);
+
+					System.out.println("Winner: " + gameLogic.whoWon(playerHand, bankerHand));
+
+					//drawCardButton.setDisable(true); // Disable the button after drawing one card
+				}
+			}
+
+			if (gameLogic.evaluateBankerDraw( bankerHand, playerHand.get(playerHand.size() - 1))) {
+				if (bankerHand.size() != 3) { // Allowing only one card to be drawn
+					Card drawnCard = theDealer.drawOne();
+					bankerHand.add(drawnCard);
+
+					String cardImagePath = drawnCard.getValue() + "_of_" + drawnCard.getSuite().toLowerCase() + ".png";
+					Image bankerCardImage = new Image(cardImagePath);
+					ImageView bankerCardImageView = new ImageView(bankerCardImage);
+					bankerCardImageView.setFitWidth(100);
+					bankerCardImageView.setFitHeight(150);
+
+					bankersCardContainer.getChildren().add(bankerCardImageView);
+
+					int bankerTotal = gameLogic.handTotal(bankerHand);
+					bankerTotalText.setText("Banker Total: " + bankerTotal);
+
+					bankersGameContent.getChildren().clear(); // Clear previous content
+					bankersGameContent.getChildren().addAll(bankerTotalText, bankersCardContainer);
+					bankersGameContent.setAlignment(Pos.CENTER);
+
+					System.out.println("Winner: " + gameLogic.whoWon(playerHand, bankerHand));
+
+					drawCardButton.setDisable(true); // Disable the button after drawing one card
+				}
+			}
+
 		});
+
+
+
+
 
 		BorderPane root3 = new BorderPane();
 
