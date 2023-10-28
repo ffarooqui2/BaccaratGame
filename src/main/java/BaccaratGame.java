@@ -33,7 +33,9 @@ public class BaccaratGame extends Application {
 
 	Scene scene1, scene2, scene3;
 
-	double betValue;
+	private double playerTotal, bankerTotal;
+
+	private Text playerTotalText, bankerTotalText;
 
 	public double evaluateWinnings(){
 		return 0;
@@ -254,15 +256,15 @@ public class BaccaratGame extends Application {
 		// Assuming you have containers for displaying hand totals: playersGameContent and bankersGameContent
 
 		// Calculate and display the player's hand total
-		int playerTotal = gameLogic.handTotal(playerHand);
-		Text playerTotalText = new Text("Player Total: " + playerTotal);
+		playerTotal = gameLogic.handTotal(playerHand);
+		playerTotalText = new Text("Player Total: " + playerTotal);
 		playerTotalText.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
 		playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
 		playersGameContent.setAlignment(Pos.CENTER);
 
 		// Calculate and display the banker's hand total
-		int bankerTotal = gameLogic.handTotal(bankerHand);
-		Text bankerTotalText = new Text("Banker Total: " + bankerTotal);
+		bankerTotal = gameLogic.handTotal(bankerHand);
+		bankerTotalText = new Text("Banker Total: " + bankerTotal);
 		bankerTotalText.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
 		bankersGameContent.getChildren().addAll(bankerTotalText, bankersCardContainer);
 		bankersGameContent.setAlignment(Pos.CENTER);
@@ -271,6 +273,7 @@ public class BaccaratGame extends Application {
 		if (bankerTotal == 8 || bankerTotal == 9 || playerTotal == 8 || playerTotal == 9){
 			// Natural Win
 			winner = gameLogic.whoWon(playerHand, bankerHand);
+			// Stop game
 		}
 
 		Button drawCardButton = new Button("DRAW");
@@ -279,7 +282,20 @@ public class BaccaratGame extends Application {
 		gameBottomMenu.getChildren().add(drawCardButton);
 
 		drawCardButton.setOnAction(e -> {
+			playerHand.add(theDealer.drawOne());
+			Image playerCard3 = new Image(playerHand.get(2).getValue()+  "_of_" + playerHand.get(2).getSuite().toLowerCase() + ".png");
+			ImageView playerCard3ImageView = new ImageView(playerCard1);
+			playerCard3ImageView.setFitWidth(100); // Set the desired width
+			playerCard3ImageView.setFitHeight(150); // Set the desired height
 
+			playersCardContainer.getChildren().add(playerCard3ImageView);
+			playerTotal = gameLogic.handTotal(playerHand);
+			playerTotalText = new Text("Player Total: " + playerTotal);
+			playerTotalText.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
+			playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
+			playersGameContent.setAlignment(Pos.CENTER);
+
+			System.out.println("Winner" + gameLogic.whoWon(playerHand, bankerHand));
 		});
 
 		BorderPane root3 = new BorderPane();
