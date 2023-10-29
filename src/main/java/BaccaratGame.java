@@ -1,9 +1,9 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -16,8 +16,10 @@ import javafx.scene.image.ImageView;
 import javafx.animation.FadeTransition;
 import javafx.util.Duration;
 
-
 public class BaccaratGame extends Application {
+
+	Font TITLE_FONT = Font.loadFont("file:src/fonts/Inter-Black.ttf", 200);
+	Font HEADING_FONT = Font.loadFont("file:src/fonts/Inter-Medium.ttf", 30);
 
 	private ArrayList<Card> playerHand;
 	private ArrayList<Card> bankerHand;
@@ -31,189 +33,170 @@ public class BaccaratGame extends Application {
 	private TextField bankerBet = new TextField("0.00");
 	private TextField tieBet = new TextField("0.00");
 
-	Scene scene1, scene2, scene3;
-
+	private Scene titleScene, placeBetsScene, mainGameScene;
+	private Text roundResults;
 	private double playerTotal, bankerTotal;
-
 	private Text playerTotalText, bankerTotalText;
 
+	// Determine if user won or lost their bet and return the amount won or lost based on the value in currentBet
 	public double evaluateWinnings(){
+
+		String currentWinner = gameLogic.whoWon(playerHand, bankerHand);
+
+		double playerBetAmount = Double.parseDouble(playerBet.getText());
+		double bankerBetAmount = Double.parseDouble(bankerBet.getText());
+		double tieBetAmount = Double.parseDouble(tieBet.getText());
+
+        switch (currentWinner) {
+            case "Player":
+                // Player won
+                return playerBetAmount;
+            case "Banker":
+                // Banker won
+				return bankerBetAmount;
+            case "Draw":
+                // It's a tie
+				return tieBetAmount;
+        }
 		return 0;
 	}
 
+	// totalWinning += evaluateWinnings()
 
 	public static void main(String[] args) {
-		System.out.println("Hello World");
-		BaccaratDealer dealer = new BaccaratDealer();
+		System.out.println("Running...");
 		launch(args);
 	}
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-
 		primaryStage.setTitle("Baccarat");
 
+		// TITLE PAGE ---------------------------------------
+		BorderPane titlePageRoot = new BorderPane();
 
-		// The scene root where content will be played out on
-		BorderPane root1 = new BorderPane();
+		// game title
+		Text gameTitle = new Text("BACCARAT");
+		gameTitle.setTextAlignment(TextAlignment.CENTER);
+		Font gameTitleFont = TITLE_FONT;
+		gameTitle.setFont(gameTitleFont);
 
-		// Title for opening page
-		Text title = new Text("BACCARAT");
-		title.setTextAlignment(TextAlignment.CENTER);
-		Font titleFont = Font.loadFont("file:src/fonts/Inter-Black.ttf", 200);
-		title.setFont(titleFont);
+		// play button
+		Button playButton = getPlayButton();
 
-		// Creating button for play
-		Button playButton = new Button();
-		Text playButtonTitle = new Text("PLAY");
-		playButtonTitle.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
-		playButton.setGraphic(playButtonTitle);
-		playButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
-							"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
-		playButton.setPadding(new Insets(10, 20, 10, 20));
-		playButton.setPrefSize(200, 50);
-
-		// Create a FadeTransition with a duration of 1 second (adjust the duration as needed)
-		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), root1);
+		// Create a FadeTransition with a duration of 1 second.
+		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), titlePageRoot);
 		fadeOut.setFromValue(1.0); // Starting opacity
 		fadeOut.setToValue(0.0);   // Ending opacity
-		fadeOut.setOnFinished(e -> primaryStage.setScene(scene2)); // Switch to Scene 2 when the transition is finished
+		fadeOut.setOnFinished(e -> primaryStage.setScene(placeBetsScene)); // Switch to Scene 2 when the transition is finished
 
-		playButton.setOnAction(e -> {
-			fadeOut.play();
-		});
+		playButton.setOnAction(e -> { fadeOut.play(); });
 
-		// Hovering over play button
-		playButton.setOnMouseEntered(e -> {
-			playButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
-					"-fx-border-radius: 20px; " +
-					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0); " +
-					"-fx-border-color: #f83838; -fx-border-width: 3px;");
-		});
+		// Main Content Container
+		VBox titlePageContent = new VBox(50);
+		titlePageContent.setAlignment(Pos.CENTER);
+		titlePageContent.getChildren().addAll(gameTitle, playButton);
+		titlePageRoot.setCenter(titlePageContent);
 
-		playButton.setOnMouseExited(e -> {
-			playButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
-								"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
-		});
+		// PLACING BETS PAGE ---------------------------------------
 
-
-		// Store the button and title in a vertical box (to be stacked on)
-		VBox homePageContent = new VBox(50);
-		homePageContent.setAlignment(Pos.CENTER);
-		homePageContent.getChildren().addAll(title, playButton);
-
-		root1.setCenter(homePageContent);
-
-		// Placing Bets Page ------------
+		// Labels for betting boxes
 		Text playerTitle = new Text("PLAYER");
-		playerTitle.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
+		playerTitle.setFont(HEADING_FONT);
 		Text bankerTitle = new Text("BANKER");
-		bankerTitle.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
+		bankerTitle.setFont(HEADING_FONT);
 		Text tieTitle = new Text("TIE");
-		tieTitle.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
+		tieTitle.setFont(HEADING_FONT);
 
+		// The following code makes it so that the user can only bet on 1 of 3 outcomes
 		playerBet.setOnKeyPressed(e -> {
 			bankerBet.clear();
 			tieBet.clear();
-			try {
-				currentBet = Double.parseDouble(playerBet.getText());
-			} catch (NumberFormatException ex){
-				currentBet = 0.0;
-			}
+			try { currentBet = Double.parseDouble(playerBet.getText());}
+			catch (NumberFormatException ex){currentBet = 0.0;}
 		});
 		playerBet.setPrefWidth(200);
-
 		bankerBet.setOnKeyPressed(e -> {
 			playerBet.clear();
 			tieBet.clear();
-			try {
-				currentBet = Double.parseDouble(bankerBet.getText());
-			} catch (NumberFormatException ex){
-				currentBet = 0.0;
-			}
-
+			try { currentBet = Double.parseDouble(bankerBet.getText());}
+			catch (NumberFormatException ex){ currentBet = 0.0; }
 		});
 		bankerBet.setPrefWidth(200);
-
 		tieBet.setOnKeyPressed(e -> {
 			playerBet.clear();
 			bankerBet.clear();
-			try {
-				currentBet = Double.parseDouble(tieBet.getText());
-			} catch (NumberFormatException ex){
-				currentBet = 0.0;
-			}
-
+			try { currentBet = Double.parseDouble(tieBet.getText());}
+			catch (NumberFormatException ex){currentBet = 0.0;}
 		});
 		tieBet.setPrefWidth(200);
 
-		// Put Input Boxes in Container
-		HBox bettingPageContent = new HBox();
-		bettingPageContent.setSpacing(200);
-
-		VBox playerInputContent = new VBox();
-		playerInputContent.setSpacing(20);
-		VBox tieInputContent = new VBox();
-		tieInputContent.setSpacing(20);
-		VBox bankerInputContent = new VBox();
-		bankerInputContent.setSpacing(20);
+		// Individual Sections for respective titles and betting inputs
+		VBox playerInputContent = new VBox(20);
+		VBox tieInputContent = new VBox(20);
+		VBox bankerInputContent = new VBox(20);
 
 		playerInputContent.getChildren().addAll(playerTitle, playerBet);
 		playerInputContent.setAlignment(Pos.CENTER);
-
 		bankerInputContent.getChildren().addAll(bankerTitle, bankerBet);
 		bankerInputContent.setAlignment(Pos.CENTER);
-
 		tieInputContent.getChildren().addAll(tieTitle, tieBet);
 		tieInputContent.setAlignment(Pos.CENTER);
 
+		// Put Input Boxes in Container
+		HBox bettingPageContent = new HBox(200);
 		bettingPageContent.getChildren().addAll(playerInputContent, tieInputContent, bankerInputContent);
 		bettingPageContent.setAlignment(Pos.CENTER);
 
+		// Button to continue to card table
+		Button continueButton = getContinueButton();
 
-		// Continue to the actual game
-		Button continueButton = new Button();
-		Text continueButtonTitle = new Text("Continue");
-		continueButton.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 30));
-		continueButton.setGraphic(continueButtonTitle);
-		continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
-				"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
-		continueButton.setPadding(new Insets(10, 20, 10, 20));
-		continueButton.setPrefSize(200, 50);
-
-		continueButton.setOnAction(e -> {
-			primaryStage.setScene(scene3);
-			System.out.println("Current Bet: " + currentBet);
-		});
-
-		// Hovering over continue button
-		continueButton.setOnMouseEntered(e -> {
-			continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
-					"-fx-border-radius: 20px; " +
-					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0); " +
-					"-fx-border-color: #497dfc; -fx-border-width: 3px;");
-		});
-
-		continueButton.setOnMouseExited(e -> {
-			continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
-					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
-		});
-
+		// Container for Button
 		HBox continueButtonContent = new HBox(20);
 		continueButtonContent.setPadding(new Insets(20, 20, 20, 20));
 		continueButtonContent.getChildren().add(continueButton);
 		continueButtonContent.setAlignment(Pos.CENTER);
 
-		BorderPane root2 = new BorderPane();
-		root2.setCenter(bettingPageContent);
-		root2.setBottom(continueButtonContent);
+		continueButton.setOnAction(e -> {
+			primaryStage.setScene(mainGameScene);
+			System.out.println("Current Bet: " + currentBet);
+		});
 
-		// Main Game ----------
+		BorderPane bettingPageRoot = new BorderPane();
+		bettingPageRoot.setCenter(bettingPageContent);
+		bettingPageRoot.setBottom(continueButtonContent);
+
+		// MAIN PLAYING FIELD ---------------------------------------
+
+		BorderPane gamePageRoot = new BorderPane();
+
+		// Menu Bar
+		MenuBar menuBar = new MenuBar();
+		Menu optionsMenu = new Menu("Options");
+		MenuItem exitItem = new MenuItem("Exit");
+		MenuItem freshStartItem = new MenuItem("Fresh Start");
+		optionsMenu.getItems().addAll(exitItem, freshStartItem);
+		menuBar.getMenus().add(optionsMenu);
+
+		// handle menu
+		exitItem.setOnAction(e -> Platform.exit());
+		freshStartItem.setOnAction(e-> {
+			totalWinnings = 0.0;
+			roundResults.setText("");
+			primaryStage.setScene(placeBetsScene);
+		});
+		// Set menu bar at the top
+		gamePageRoot.setTop(menuBar);
+
+
+		// Individual Card Containers
 		VBox playersGameContent = new VBox(30);
 		VBox bankersGameContent = new VBox(30);
-
 		HBox playersCardContainer = new HBox(10);
 		HBox bankersCardContainer = new HBox(10);
+
+		roundResults = new Text("");
+		roundResults.setFont(HEADING_FONT);
 
 		// Created instances of game logic and dealer
 		gameLogic = new BaccaratGameLogic();
@@ -258,14 +241,14 @@ public class BaccaratGame extends Application {
 		// Calculate and display the player's hand total
 		playerTotal = gameLogic.handTotal(playerHand);
 		playerTotalText = new Text("Player Total: " + playerTotal);
-		playerTotalText.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
+		playerTotalText.setFont(HEADING_FONT);
 		playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
 		playersGameContent.setAlignment(Pos.CENTER);
 
 		// Calculate and display the banker's hand total
 		bankerTotal = gameLogic.handTotal(bankerHand);
 		bankerTotalText = new Text("Banker Total: " + bankerTotal);
-		bankerTotalText.setFont(Font.loadFont("file:src/fonts/Inter-Medium.ttf", 20));
+		bankerTotalText.setFont(HEADING_FONT);
 		bankersGameContent.getChildren().addAll(bankerTotalText, bankersCardContainer);
 		bankersGameContent.setAlignment(Pos.CENTER);
 
@@ -287,7 +270,7 @@ public class BaccaratGame extends Application {
 		// DRAW CARD ACTION
 		drawCardButton.setOnAction(e -> {
 			if (gameLogic.evaluatePlayerDraw(playerHand)) {
-				if (playerHand.size() != 3) { // Allowing only one card to be drawn
+
 					Card drawnCard = theDealer.drawOne();
 					playerHand.add(drawnCard);
 
@@ -309,11 +292,10 @@ public class BaccaratGame extends Application {
 					System.out.println("Winner: " + gameLogic.whoWon(playerHand, bankerHand));
 
 					//drawCardButton.setDisable(true); // Disable the button after drawing one card
-				}
 			}
 
 			if (gameLogic.evaluateBankerDraw( bankerHand, playerHand.get(playerHand.size() - 1))) {
-				if (bankerHand.size() != 3) { // Allowing only one card to be drawn
+
 					Card drawnCard = theDealer.drawOne();
 					bankerHand.add(drawnCard);
 
@@ -335,30 +317,79 @@ public class BaccaratGame extends Application {
 					System.out.println("Winner: " + gameLogic.whoWon(playerHand, bankerHand));
 
 					drawCardButton.setDisable(true); // Disable the button after drawing one card
-				}
 			}
-
 		});
-
-
-
-
-
-		BorderPane root3 = new BorderPane();
 
 		HBox mainGameContent = new HBox(500);
 		mainGameContent.getChildren().addAll(playersGameContent, bankersGameContent);
 		mainGameContent.setAlignment(Pos.CENTER);
 
-		root3.setCenter(mainGameContent);
-		root3.setBottom(gameBottomMenu);
+		VBox resultsContainer = new VBox(10);
+		resultsContainer.setAlignment(Pos.CENTER);
+		resultsContainer.getChildren().addAll(roundResults);
+
+
+		gamePageRoot.setCenter(mainGameContent);
+		gamePageRoot.setBottom(gameBottomMenu);
+		gamePageRoot.setLeft(resultsContainer);
 
 		// put root on the scene which goes on to the stage
-		scene1 = new Scene(root1, 1280,720);
-		scene2 = new Scene(root2, 1280, 720);
-		scene3 = new Scene(root3, 1280, 720);
-		primaryStage.setScene(scene1);
-		primaryStage.show();
+		titleScene = new Scene(titlePageRoot, 1280,720);
+		placeBetsScene = new Scene(bettingPageRoot, 1280, 720);
+		mainGameScene = new Scene(gamePageRoot, 1280, 720);
 
+		primaryStage.setScene(titleScene);
+		primaryStage.show();
 	}
+
+	private Button getPlayButton(){
+		Button playButton = new Button();
+		Text playButtonTitle = new Text("PLAY");
+		playButtonTitle.setFont(HEADING_FONT);
+		playButton.setGraphic(playButtonTitle);
+		playButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+				"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
+		playButton.setPadding(new Insets(10, 20, 10, 20));
+		playButton.setPrefSize(200, 50);
+
+		// Button Hovering Animation
+		playButton.setOnMouseEntered(e -> {
+			playButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+					"-fx-border-radius: 20px; " +
+					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0); " +
+					"-fx-border-color: #f83838; -fx-border-width: 3px;");
+		});
+		playButton.setOnMouseExited(e -> {
+			playButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
+		});
+
+		return playButton;
+	}
+	private Button getContinueButton() {
+		Button continueButton = new Button();
+		Text continueButtonTitle = new Text("Continue");
+		continueButton.setFont(HEADING_FONT);
+		continueButton.setGraphic(continueButtonTitle);
+		continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+				"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
+		continueButton.setPadding(new Insets(10, 20, 10, 20));
+		continueButton.setPrefSize(200, 50);
+
+		// Hovering over continue button
+		continueButton.setOnMouseEntered(e -> {
+			continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+					"-fx-border-radius: 20px; " +
+					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0); " +
+					"-fx-border-color: #497dfc; -fx-border-width: 3px;");
+		});
+
+		continueButton.setOnMouseExited(e -> {
+			continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
+		});
+		return continueButton;
+	}
+
+
 }

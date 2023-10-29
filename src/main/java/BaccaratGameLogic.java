@@ -34,7 +34,9 @@ public class BaccaratGameLogic {
     public boolean evaluateBankerDraw(ArrayList<Card> hand, Card playerCard){
         int playerTotal = playerCard.getValue();
         int bankerTotal = handTotal(hand);
-
+        if(hand.size() == 3){
+            return false;
+        }
         if (bankerTotal < 3){
             return true;
         }
@@ -47,12 +49,18 @@ public class BaccaratGameLogic {
         else if(bankerTotal == 5 && (playerTotal >= 4 && playerTotal <= 7)){
             return true;
         }
-        else return bankerTotal == 6 && (playerTotal == 6 || playerTotal == 7);
+        else if(bankerTotal == 6 && (playerTotal == 6 || playerTotal == 7)){
+            return true;
+        }
+        else{
+            return false;
+        }
 
     }
+
     public boolean evaluatePlayerDraw(ArrayList<Card> hand){
         int playerTotal = handTotal(hand);
-        return playerTotal < 6;
+        return playerTotal < 6 && hand.size() != 3;
     }
 
 
