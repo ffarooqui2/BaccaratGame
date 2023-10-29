@@ -40,6 +40,7 @@ public class BaccaratGame extends Application {
 	private TextField tieBet = new TextField("0.00");
 	private Scene titleScene, placeBetsScene, mainGameScene;
 	private Text roundResults;
+	private Text displayWinningBets;
 	private Text playerTotalText, bankerTotalText;
 	private int bankerTotal, playerTotal;
 	private int drawCardCounter = 0;
@@ -195,11 +196,19 @@ public class BaccaratGame extends Application {
 
 		// MAIN PLAYING FIELD ---------------------------------------
 
+		displayWinningBets = new Text("Total Winnings: ");
+		displayWinningBets.setFont(TEXT_FONT);
+
 		BorderPane gamePageRoot = new BorderPane();
+		HBox currentWinningsContainer = new HBox(5);
 
 		// CurrentWinnings Box
 		TextField currentWinningDisplay = new TextField();
 		currentWinningDisplay.setText(Double.toString(totalWinnings));
+
+		currentWinningsContainer.getChildren().addAll(displayWinningBets, currentWinningDisplay);
+
+
 
 		// Created instances of game logic and dealer
 		gameLogic = new BaccaratGameLogic();
@@ -217,6 +226,7 @@ public class BaccaratGame extends Application {
 		exitItem.setOnAction(e -> Platform.exit());
 		freshStartItem.setOnAction(e-> {
 			totalWinnings = 0.0;
+			currentWinningDisplay.setText("");
 			roundResults.setText("");
 			primaryStage.setScene(placeBetsScene);
 		});
@@ -227,6 +237,8 @@ public class BaccaratGame extends Application {
 		HBox mainGameContent = new HBox(200);
 		// holds the results
 		VBox resultsContainer = new VBox(50);
+		Text resultsLabel = new Text("RESULTS");
+		resultsLabel.setFont(HEADING_FONT);
 		// Storing the cards and hand total respectively
 		VBox playersGameContent = new VBox(30);
 		VBox bankersGameContent = new VBox(30);
@@ -252,6 +264,7 @@ public class BaccaratGame extends Application {
 			roundResults.setText("");
 			roundResults.setFont(HEADING_FONT);
 			resultsContainer.getChildren().clear();
+			resultsContainer.getChildren().add(resultsLabel);
 
 			// Reset the player and banker totals;
 			playerTotal = 0;
@@ -397,18 +410,17 @@ public class BaccaratGame extends Application {
 
 		HBox gameBottomMenu = new HBox(150);
 		gameBottomMenu.setPadding(new Insets(20, 20, 20, 20));
-		gameBottomMenu.getChildren().addAll(drawCardButton, startNewRound, currentWinningDisplay);
+		gameBottomMenu.getChildren().addAll(drawCardButton, startNewRound, currentWinningsContainer);
 
 		resultsContainer.setAlignment(Pos.CENTER);
 		resultsContainer.getChildren().clear();
-		resultsContainer.getChildren().add(roundResults);
+		resultsContainer.getChildren().addAll(resultsLabel, roundResults);
 
 		mainGameContent.getChildren().addAll(playersGameContent, resultsContainer, bankersGameContent);
 		mainGameContent.setAlignment(Pos.CENTER);
 
 		gamePageRoot.setCenter(mainGameContent);
 		gamePageRoot.setBottom(gameBottomMenu);
-		gamePageRoot.setLeft(resultsContainer);
 
 		// put root on the scene which goes on to the stage
 		titleScene = new Scene(titlePageRoot, 1280,720);
