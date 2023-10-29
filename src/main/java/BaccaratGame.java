@@ -1,25 +1,31 @@
+import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import java.util.ArrayList;
-import java.lang.Double;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.animation.FadeTransition;
 import javafx.util.Duration;
+
+import java.util.ArrayList;
 
 public class BaccaratGame extends Application {
 
-	Font TITLE_FONT = Font.loadFont("file:src/fonts/Inter-Black.ttf", 200);
-	Font HEADING_FONT = Font.loadFont("file:src/fonts/Inter-Medium.ttf", 30);
+	Font TITLE_FONT = Font.loadFont("file:src/assets/Inter-Black.ttf", 200);
+	Font HEADING_FONT = Font.loadFont("file:src/assets/Inter-Medium.ttf", 30);
+	Font TEXT_FONT = Font.loadFont("file:src/assets/Inter-SemiBoldItalic.ttf", 10);
+
+	int CARD_WIDTH = 100;
+	int CARD_HEIGHT = 150;
 
 	private ArrayList<Card> playerHand;
 	private ArrayList<Card> bankerHand;
@@ -32,11 +38,11 @@ public class BaccaratGame extends Application {
 	private TextField playerBet = new TextField("0.00");
 	private TextField bankerBet = new TextField("0.00");
 	private TextField tieBet = new TextField("0.00");
-
 	private Scene titleScene, placeBetsScene, mainGameScene;
 	private Text roundResults;
-	private double playerTotal, bankerTotal;
 	private Text playerTotalText, bankerTotalText;
+	private int bankerTotal, playerTotal;
+	private int drawCardCounter = 0;
 
 	// Determine if user won or lost their bet and return the amount won or lost based on the value in currentBet
 	public double evaluateWinnings(){
@@ -159,7 +165,7 @@ public class BaccaratGame extends Application {
 
 		continueButton.setOnAction(e -> {
 			primaryStage.setScene(mainGameScene);
-			System.out.println("Current Bet: " + currentBet);
+			System.out.println("Current Bet: " + currentBet); // comment out later
 		});
 
 		BorderPane bettingPageRoot = new BorderPane();
@@ -170,6 +176,14 @@ public class BaccaratGame extends Application {
 
 		BorderPane gamePageRoot = new BorderPane();
 
+		// Created instances of game logic and dealer
+		gameLogic = new BaccaratGameLogic();
+		theDealer = new BaccaratDealer();
+
+		// Create results Text of the round
+		roundResults = new Text("");
+		roundResults.setFont(HEADING_FONT);
+
 		// Menu Bar
 		MenuBar menuBar = new MenuBar();
 		Menu optionsMenu = new Menu("Options");
@@ -178,7 +192,7 @@ public class BaccaratGame extends Application {
 		optionsMenu.getItems().addAll(exitItem, freshStartItem);
 		menuBar.getMenus().add(optionsMenu);
 
-		// handle menu
+		// Menu Actions
 		exitItem.setOnAction(e -> Platform.exit());
 		freshStartItem.setOnAction(e-> {
 			totalWinnings = 0.0;
@@ -188,122 +202,141 @@ public class BaccaratGame extends Application {
 		// Set menu bar at the top
 		gamePageRoot.setTop(menuBar);
 
-
-		// Individual Card Containers
+		// contains the results, cards, and totals
+		HBox mainGameContent = new HBox(200);
+		// holds the results
+		VBox resultsContainer = new VBox(50);
+		// Storing the cards and hand total respectively
 		VBox playersGameContent = new VBox(30);
 		VBox bankersGameContent = new VBox(30);
+		// Individual Card Containers
 		HBox playersCardContainer = new HBox(10);
 		HBox bankersCardContainer = new HBox(10);
+		// CurrentWinnings Box
+		TextField currentWinningDisplay = new TextField(Double.toString(totalWinnings));
 
-		roundResults = new Text("");
-		roundResults.setFont(HEADING_FONT);
+		// Play Button - resets the cards and the result screen but also stores the result into history
+		Button startNewRound = getHelperButton("DEAL");
+		startNewRound.setOnAction(e -> {
+			// remove temporary game elements
+			playerHand.clear();
+			bankerHand.clear();
+			playersCardContainer.getChildren().clear();
+			bankersCardContainer.getChildren().clear();
 
-		// Created instances of game logic and dealer
-		gameLogic = new BaccaratGameLogic();
-		theDealer = new BaccaratDealer();
+			// return to betting scene to let user place new bets
+			primaryStage.setScene(placeBetsScene);
+		});
 
-		// Deal two cards for the player and banker
-		playerHand = theDealer.dealHand();
-		bankerHand = theDealer.dealHand();
-
-		Image playerCard1 = new Image(playerHand.get(0).getValue()+  "_of_" + playerHand.get(0).getSuite().toLowerCase() + ".png");
-		Image playerCard2 = new Image(playerHand.get(1).getValue()+  "_of_" + playerHand.get(1).getSuite().toLowerCase() + ".png");
-		Image bankerCard1 = new Image(bankerHand.get(0).getValue()+  "_of_" + bankerHand.get(0).getSuite().toLowerCase() + ".png");
-		Image bankerCard2 = new Image(bankerHand.get(1).getValue()+  "_of_" + bankerHand.get(1).getSuite().toLowerCase() + ".png");
-
-		// Create ImageView instances for each card and set their dimensions
-		ImageView playerCard1ImageView = new ImageView(playerCard1);
-		playerCard1ImageView.setFitWidth(100); // Set the desired width
-		playerCard1ImageView.setFitHeight(150); // Set the desired height
-
-		ImageView playerCard2ImageView = new ImageView(playerCard2);
-		playerCard2ImageView.setFitWidth(100); // Set the desired width
-		playerCard2ImageView.setFitHeight(150); // Set the desired height
-
-		ImageView bankerCard1ImageView = new ImageView(bankerCard1);
-		bankerCard1ImageView.setFitWidth(100); // Set the desired width
-		bankerCard1ImageView.setFitHeight(150); // Set the desired height
-
-		ImageView bankerCard2ImageView = new ImageView(bankerCard2);
-		bankerCard2ImageView.setFitWidth(100); // Set the desired width
-		bankerCard2ImageView.setFitHeight(150); // Set the desired height
-
-		// Display player's cards
-		playersCardContainer.getChildren().addAll(playerCard1ImageView, playerCard2ImageView);
-		playersCardContainer.setAlignment(Pos.CENTER);
-
-		// Display banker's cards
-		bankersCardContainer.getChildren().addAll(bankerCard1ImageView, bankerCard2ImageView);
-		bankersCardContainer.setAlignment(Pos.CENTER);
-
-		// Assuming you have containers for displaying hand totals: playersGameContent and bankersGameContent
-
-		// Calculate and display the player's hand total
-		playerTotal = gameLogic.handTotal(playerHand);
-		playerTotalText = new Text("Player Total: " + playerTotal);
-		playerTotalText.setFont(HEADING_FONT);
-		playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
-		playersGameContent.setAlignment(Pos.CENTER);
-
-		// Calculate and display the banker's hand total
-		bankerTotal = gameLogic.handTotal(bankerHand);
-		bankerTotalText = new Text("Banker Total: " + bankerTotal);
-		bankerTotalText.setFont(HEADING_FONT);
-		bankersGameContent.getChildren().addAll(bankerTotalText, bankersCardContainer);
-		bankersGameContent.setAlignment(Pos.CENTER);
-
-		String winner;
-		if (bankerTotal == 8 || bankerTotal == 9 || playerTotal == 8 || playerTotal == 9){
-			// Natural Win
-			winner = gameLogic.whoWon(playerHand, bankerHand);
-			// Stop game
-		}
+		// Draw Card Button
+		Button drawCardButton = getHelperButton("DRAW");
+		Font drawCardFont = TEXT_FONT;
+		drawCardButton.setFont(drawCardFont);
 
 
-		// DRAW CARD BUTTON
-		Button drawCardButton = new Button("DRAW");
-		HBox gameBottomMenu = new HBox(150);
-		gameBottomMenu.setPadding(new Insets(20, 20, 20, 20));
-		gameBottomMenu.getChildren().add(drawCardButton);
-
-
-		// DRAW CARD ACTION
 		drawCardButton.setOnAction(e -> {
-			if (gameLogic.evaluatePlayerDraw(playerHand)) {
 
-					Card drawnCard = theDealer.drawOne();
-					playerHand.add(drawnCard);
+			if (drawCardCounter < 4) {
+				// Draw two for player
+				playerHand = theDealer.dealHand();
+				Image playerCard1 = new Image(playerHand.get(0).getValue()+  "_of_" + playerHand.get(0).getSuite().toLowerCase() + ".png");
+				Image playerCard2 = new Image(playerHand.get(1).getValue()+  "_of_" + playerHand.get(1).getSuite().toLowerCase() + ".png");
 
-					String cardImagePath = drawnCard.getValue() + "_of_" + drawnCard.getSuite().toLowerCase() + ".png";
+				// Create ImageView instances for each card and set their dimensions
+				ImageView playerCard1ImageView = new ImageView(playerCard1);
+				playerCard1ImageView.setFitWidth(CARD_WIDTH); // Set the desired width
+				playerCard1ImageView.setFitHeight(CARD_HEIGHT); // Set the desired height
+
+				ImageView playerCard2ImageView = new ImageView(playerCard2);
+				playerCard2ImageView.setFitWidth(CARD_WIDTH); // Set the desired width
+				playerCard2ImageView.setFitHeight(CARD_HEIGHT); // Set the desired height
+
+				playersCardContainer.getChildren().addAll(playerCard1ImageView, playerCard2ImageView);
+
+				playerTotal = gameLogic.handTotal(playerHand);
+				playerTotalText = new Text("Player Total: " + playerTotal);
+				playerTotalText.setFont(HEADING_FONT);
+
+				playersGameContent.getChildren().clear();
+				playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
+				playersGameContent.setAlignment(Pos.CENTER);
+
+				// Draw two for banker
+				bankerHand = theDealer.dealHand();
+
+				Image bankerCard1 = new Image(bankerHand.get(0).getValue()+  "_of_" + bankerHand.get(0).getSuite().toLowerCase() + ".png");
+				Image bankerCard2 = new Image(bankerHand.get(1).getValue()+  "_of_" + bankerHand.get(1).getSuite().toLowerCase() + ".png");
+
+				ImageView bankerCard1ImageView = new ImageView(bankerCard1);
+				bankerCard1ImageView.setFitWidth(CARD_WIDTH); // Set the desired width
+				bankerCard1ImageView.setFitHeight(CARD_HEIGHT); // Set the desired height
+
+				ImageView bankerCard2ImageView = new ImageView(bankerCard2);
+				bankerCard2ImageView.setFitWidth(CARD_WIDTH); // Set the desired width
+				bankerCard2ImageView.setFitHeight(CARD_HEIGHT); // Set the desired height
+
+				// Calculating the total for banker
+				bankerTotal = gameLogic.handTotal(playerHand);
+				bankerTotalText.setText("Player Total: " + bankerTotal);
+				bankerTotalText.setFont(HEADING_FONT);
+
+				bankersGameContent.getChildren().clear(); // Clear previous content
+				bankersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
+				bankersGameContent.setAlignment(Pos.CENTER);
+
+				drawCardCounter += 4;
+
+
+
+				// Natural Win
+				if (bankerTotal == 8 || bankerTotal == 9 || playerTotal == 8 || playerTotal == 9){
+					// disable button
+					drawCardButton.setDisable((true));
+
+					// Evaluate the winner and display the result
+					String winner = gameLogic.whoWon(playerHand, bankerHand);
+					roundResults.setText("Winner: " + winner);
+					totalWinnings += evaluateWinnings();
+					// end game
+					// enable play again button
+					startNewRound.setDisable(false);
+
+				}
+			}
+
+			else {
+				// Check who can draw next, player goes first
+				if (gameLogic.evaluatePlayerDraw(playerHand)){
+
+					Card cardDrawn = theDealer.drawOne();
+					playerHand.add(cardDrawn);
+
+					String cardImagePath = cardDrawn.getValue() + "_of_" + cardDrawn.getSuite().toLowerCase() + ".png";
 					Image playerCardImage = new Image(cardImagePath);
 					ImageView playerCardImageView = new ImageView(playerCardImage);
-					playerCardImageView.setFitWidth(100);
-					playerCardImageView.setFitHeight(150);
+					playerCardImageView.setFitHeight(CARD_HEIGHT);
+					playerCardImageView.setFitWidth(CARD_WIDTH);
 
 					playersCardContainer.getChildren().add(playerCardImageView);
 
 					int playerTotal = gameLogic.handTotal(playerHand);
 					playerTotalText.setText("Player Total: " + playerTotal);
 
-					playersGameContent.getChildren().clear(); // Clear previous content
+					playersGameContent.getChildren().clear();
 					playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
 					playersGameContent.setAlignment(Pos.CENTER);
 
-					System.out.println("Winner: " + gameLogic.whoWon(playerHand, bankerHand));
 
-					//drawCardButton.setDisable(true); // Disable the button after drawing one card
-			}
-
-			if (gameLogic.evaluateBankerDraw( bankerHand, playerHand.get(playerHand.size() - 1))) {
-
+				}
+				if (gameLogic.evaluateBankerDraw(bankerHand, playerHand.get(playerHand.size() - 1))){
 					Card drawnCard = theDealer.drawOne();
 					bankerHand.add(drawnCard);
 
 					String cardImagePath = drawnCard.getValue() + "_of_" + drawnCard.getSuite().toLowerCase() + ".png";
 					Image bankerCardImage = new Image(cardImagePath);
 					ImageView bankerCardImageView = new ImageView(bankerCardImage);
-					bankerCardImageView.setFitWidth(100);
-					bankerCardImageView.setFitHeight(150);
+					bankerCardImageView.setFitWidth(CARD_WIDTH);
+					bankerCardImageView.setFitHeight(CARD_HEIGHT);
 
 					bankersCardContainer.getChildren().add(bankerCardImageView);
 
@@ -314,20 +347,30 @@ public class BaccaratGame extends Application {
 					bankersGameContent.getChildren().addAll(bankerTotalText, bankersCardContainer);
 					bankersGameContent.setAlignment(Pos.CENTER);
 
-					System.out.println("Winner: " + gameLogic.whoWon(playerHand, bankerHand));
+				}
 
-					drawCardButton.setDisable(true); // Disable the button after drawing one card
+
+				// Game over should now be over since all draws are exercised, display final result
+				String winner = gameLogic.whoWon(playerHand, bankerHand);
+				roundResults.setText("Winner: " + winner);
+				totalWinnings += evaluateWinnings();
+
+				// disable button
+				drawCardButton.setDisable((true));
+				startNewRound.setDisable(false);
+
 			}
 		});
 
-		HBox mainGameContent = new HBox(500);
-		mainGameContent.getChildren().addAll(playersGameContent, bankersGameContent);
+		HBox gameBottomMenu = new HBox(150);
+		gameBottomMenu.setPadding(new Insets(20, 20, 20, 20));
+		gameBottomMenu.getChildren().addAll(drawCardButton, startNewRound, currentWinningDisplay);
+
+		mainGameContent.getChildren().addAll(playersGameContent, resultsContainer, bankersGameContent);
 		mainGameContent.setAlignment(Pos.CENTER);
 
-		VBox resultsContainer = new VBox(10);
 		resultsContainer.setAlignment(Pos.CENTER);
 		resultsContainer.getChildren().addAll(roundResults);
-
 
 		gamePageRoot.setCenter(mainGameContent);
 		gamePageRoot.setBottom(gameBottomMenu);
@@ -389,6 +432,31 @@ public class BaccaratGame extends Application {
 					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
 		});
 		return continueButton;
+	}
+	private Button getHelperButton(String label){
+		Button button = new Button();
+		Text buttonTitle = new Text(label);
+		button.setFont(TEXT_FONT);
+		button.setGraphic(buttonTitle);
+		button.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+				"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
+		button.setPadding(new Insets(10, 20, 10, 20));
+		button.setPrefSize(100, 25);
+
+		// Hovering over continue button
+		button.setOnMouseEntered(e -> {
+			button.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+					"-fx-border-radius: 20px; " +
+					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0); " +
+					"-fx-border-color: #005e07; -fx-border-width: 3px;");
+		});
+
+		button.setOnMouseExited(e -> {
+			button.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
+					"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
+		});
+
+		return button;
 	}
 
 
