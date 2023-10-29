@@ -45,27 +45,40 @@ public class BaccaratGame extends Application {
 	private int drawCardCounter = 0;
 
 	// Determine if user won or lost their bet and return the amount won or lost based on the value in currentBet
-	public double evaluateWinnings(){
-
+	public double evaluateWinnings() {
+		// Get the winner of the round
 		String currentWinner = gameLogic.whoWon(playerHand, bankerHand);
 
-		double playerBetAmount = Double.parseDouble(playerBet.getText());
-		double bankerBetAmount = Double.parseDouble(bankerBet.getText());
-		double tieBetAmount = Double.parseDouble(tieBet.getText());
+		double playerBetAmount;
+		double bankerBetAmount;
+		double tieBetAmount;
 
-        switch (currentWinner) {
-            case "Player":
-                // Player won
-                return playerBetAmount;
-            case "Banker":
-                // Banker won
-				return bankerBetAmount;
-            case "Draw":
-                // It's a tie
-				return tieBetAmount;
-        }
-		return 0;
+		try { playerBetAmount = Double.parseDouble(playerBet.getText());}
+		catch (NumberFormatException ex){playerBetAmount = 0.0;}
+
+		try { bankerBetAmount = Double.parseDouble(bankerBet.getText());}
+		catch (NumberFormatException ex){bankerBetAmount = 0.0;}
+
+		try { tieBetAmount = Double.parseDouble(tieBet.getText());}
+		catch (NumberFormatException ex){tieBetAmount = 0.0;}
+
+
+		double winnings = 0;
+
+		if (currentWinner.equals("Player")) {
+			// Player won
+			winnings = (playerBetAmount - bankerBetAmount - tieBetAmount);
+		} else if (currentWinner.equals("Banker")) {
+			// Banker won
+			winnings = (bankerBetAmount - tieBetAmount - playerBetAmount);
+		} else if (currentWinner.equals("Draw")) {
+			// It's a tie
+			winnings = (tieBetAmount - bankerBetAmount - playerBetAmount);
+		}
+
+		return winnings;
 	}
+
 
 	// totalWinning += evaluateWinnings()
 
@@ -94,7 +107,10 @@ public class BaccaratGame extends Application {
 		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), titlePageRoot);
 		fadeOut.setFromValue(1.0); // Starting opacity
 		fadeOut.setToValue(0.0);   // Ending opacity
-		fadeOut.setOnFinished(e -> primaryStage.setScene(placeBetsScene)); // Switch to Scene 2 when the transition is finished
+		fadeOut.setOnFinished(e -> {
+			primaryStage.setScene(placeBetsScene);
+			totalWinnings = 0;
+		}); // Switch to Scene 2 when the transition is finished
 
 		playButton.setOnAction(e -> { fadeOut.play(); });
 
@@ -105,6 +121,8 @@ public class BaccaratGame extends Application {
 		titlePageRoot.setCenter(titlePageContent);
 
 		// PLACING BETS PAGE ---------------------------------------
+
+		roundResults = new Text("");
 
 		// Labels for betting boxes
 		Text playerTitle = new Text("PLAYER");
@@ -165,6 +183,9 @@ public class BaccaratGame extends Application {
 
 		continueButton.setOnAction(e -> {
 			primaryStage.setScene(mainGameScene);
+			// Create results Text of the round
+			roundResults.setText("");
+			roundResults.setFont(HEADING_FONT);
 			System.out.println("Current Bet: " + currentBet); // comment out later
 		});
 
@@ -176,13 +197,13 @@ public class BaccaratGame extends Application {
 
 		BorderPane gamePageRoot = new BorderPane();
 
+		// CurrentWinnings Box
+		TextField currentWinningDisplay = new TextField();
+		currentWinningDisplay.setText(Double.toString(totalWinnings));
+
 		// Created instances of game logic and dealer
 		gameLogic = new BaccaratGameLogic();
 		theDealer = new BaccaratDealer();
-
-		// Create results Text of the round
-		roundResults = new Text("");
-		roundResults.setFont(HEADING_FONT);
 
 		// Menu Bar
 		MenuBar menuBar = new MenuBar();
@@ -212,11 +233,14 @@ public class BaccaratGame extends Application {
 		// Individual Card Containers
 		HBox playersCardContainer = new HBox(10);
 		HBox bankersCardContainer = new HBox(10);
-		// CurrentWinnings Box
-		TextField currentWinningDisplay = new TextField(Double.toString(totalWinnings));
+
+		// Draw Card Button
+		Button drawCardButton = getHelperButton("DRAW CARD");
+		Font drawCardFont = TEXT_FONT;
+		drawCardButton.setFont(drawCardFont);
 
 		// Play Button - resets the cards and the result screen but also stores the result into history
-		Button startNewRound = getHelperButton("DEAL");
+		Button startNewRound = getHelperButton("PLAY AGAIN");
 		startNewRound.setOnAction(e -> {
 			// remove temporary game elements
 			playerHand.clear();
@@ -224,15 +248,23 @@ public class BaccaratGame extends Application {
 			playersCardContainer.getChildren().clear();
 			bankersCardContainer.getChildren().clear();
 
+			// Create results Text of the round
+			roundResults.setText("");
+			roundResults.setFont(HEADING_FONT);
+			resultsContainer.getChildren().clear();
+
+			// Reset the player and banker totals;
+			playerTotal = 0;
+			bankerTotal = 0;
+			playerTotalText.setText("Player Total: " + playerTotal);
+			bankerTotalText.setText("Player Total: " + bankerTotal);
+
+			drawCardCounter = 0;
+			drawCardButton.setDisable(false);
+			startNewRound.setDisable(true);
 			// return to betting scene to let user place new bets
 			primaryStage.setScene(placeBetsScene);
 		});
-
-		// Draw Card Button
-		Button drawCardButton = getHelperButton("DRAW");
-		Font drawCardFont = TEXT_FONT;
-		drawCardButton.setFont(drawCardFont);
-
 
 		drawCardButton.setOnAction(e -> {
 
@@ -275,32 +307,33 @@ public class BaccaratGame extends Application {
 				bankerCard2ImageView.setFitWidth(CARD_WIDTH); // Set the desired width
 				bankerCard2ImageView.setFitHeight(CARD_HEIGHT); // Set the desired height
 
+				bankersCardContainer.getChildren().addAll(bankerCard1ImageView, bankerCard2ImageView);
+
 				// Calculating the total for banker
-				bankerTotal = gameLogic.handTotal(playerHand);
-				bankerTotalText.setText("Player Total: " + bankerTotal);
+				bankerTotal = gameLogic.handTotal(bankerHand);
+				bankerTotalText = new Text ("Banker Total: " + bankerTotal);
 				bankerTotalText.setFont(HEADING_FONT);
 
 				bankersGameContent.getChildren().clear(); // Clear previous content
-				bankersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
+				bankersGameContent.getChildren().addAll(bankerTotalText, bankersCardContainer);
 				bankersGameContent.setAlignment(Pos.CENTER);
 
 				drawCardCounter += 4;
 
-
-
-				// Natural Win
+				// Check for Natural Win
 				if (bankerTotal == 8 || bankerTotal == 9 || playerTotal == 8 || playerTotal == 9){
-					// disable button
-					drawCardButton.setDisable((true));
-
 					// Evaluate the winner and display the result
 					String winner = gameLogic.whoWon(playerHand, bankerHand);
 					roundResults.setText("Winner: " + winner);
 					totalWinnings += evaluateWinnings();
+
+					currentWinningDisplay.setText(Double.toString(totalWinnings));
 					// end game
+
+					// disable button
+					drawCardButton.setDisable(true);
 					// enable play again button
 					startNewRound.setDisable(false);
-
 				}
 			}
 
@@ -326,7 +359,6 @@ public class BaccaratGame extends Application {
 					playersGameContent.getChildren().addAll(playerTotalText, playersCardContainer);
 					playersGameContent.setAlignment(Pos.CENTER);
 
-
 				}
 				if (gameLogic.evaluateBankerDraw(bankerHand, playerHand.get(playerHand.size() - 1))){
 					Card drawnCard = theDealer.drawOne();
@@ -349,16 +381,17 @@ public class BaccaratGame extends Application {
 
 				}
 
-
 				// Game over should now be over since all draws are exercised, display final result
 				String winner = gameLogic.whoWon(playerHand, bankerHand);
 				roundResults.setText("Winner: " + winner);
 				totalWinnings += evaluateWinnings();
 
-				// disable button
-				drawCardButton.setDisable((true));
-				startNewRound.setDisable(false);
+				currentWinningDisplay.setText(Double.toString(totalWinnings));
 
+				// disable button
+				drawCardButton.setDisable(true);
+				// enable play again button
+				startNewRound.setDisable(false);
 			}
 		});
 
@@ -366,11 +399,12 @@ public class BaccaratGame extends Application {
 		gameBottomMenu.setPadding(new Insets(20, 20, 20, 20));
 		gameBottomMenu.getChildren().addAll(drawCardButton, startNewRound, currentWinningDisplay);
 
+		resultsContainer.setAlignment(Pos.CENTER);
+		resultsContainer.getChildren().clear();
+		resultsContainer.getChildren().add(roundResults);
+
 		mainGameContent.getChildren().addAll(playersGameContent, resultsContainer, bankersGameContent);
 		mainGameContent.setAlignment(Pos.CENTER);
-
-		resultsContainer.setAlignment(Pos.CENTER);
-		resultsContainer.getChildren().addAll(roundResults);
 
 		gamePageRoot.setCenter(mainGameContent);
 		gamePageRoot.setBottom(gameBottomMenu);
@@ -458,6 +492,4 @@ public class BaccaratGame extends Application {
 
 		return button;
 	}
-
-
 }
