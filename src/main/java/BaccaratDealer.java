@@ -6,12 +6,14 @@ public class BaccaratDealer {
 
     private ArrayList<Card> deck;
 
+    //Constructor
     public BaccaratDealer(){
         deck = new ArrayList<Card>();
         generateDeck();
         shuffleDeck();
     }
 
+    //Generates a deck of cards, 52 unique cards
     public void generateDeck(){
         for (int i = 0; i < 4; i++){
             String suite = "";
@@ -31,6 +33,7 @@ public class BaccaratDealer {
         }
     }
 
+    //Deals two cards from the deck
     public ArrayList<Card> dealHand(){
         ArrayList<Card> deal = new ArrayList<>(3);
         deal.add(0, deck.remove(0));
@@ -39,14 +42,17 @@ public class BaccaratDealer {
         return deal;
     }
 
+    //Draws one card out of the deck
     public Card drawOne(){
         return deck.remove(0);
     }
 
+    //Shuffles the deck to randomize the order
     public void shuffleDeck(){
         Collections.shuffle(deck);
     }
 
+    //returns the deck size
     public int deckSize(){
         return deck.size();
     }
