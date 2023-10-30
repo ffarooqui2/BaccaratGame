@@ -5,18 +5,29 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.paint.Color;
 
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class BaccaratGame extends Application {
 
@@ -24,6 +35,7 @@ public class BaccaratGame extends Application {
 	Font HEADING_FONT = Font.loadFont("file:src/assets/Inter-Medium.ttf", 30);
 	Font TEXT_FONT = Font.loadFont("file:src/assets/Inter-SemiBoldItalic.ttf", 10);
 
+	Font RESULT_FONT = Font.loadFont("file:src/assets/Inter-ExtraBold.ttf", 35);
 	int CARD_WIDTH = 100;
 	int CARD_HEIGHT = 150;
 
@@ -35,11 +47,13 @@ public class BaccaratGame extends Application {
 	private double totalWinnings;
 
 	// Input Boxes for Player or Banker
+	private List<Text> gameHistory = new ArrayList<>();
 	private TextField playerBet = new TextField("0.00");
 	private TextField bankerBet = new TextField("0.00");
 	private TextField tieBet = new TextField("0.00");
-	private Scene titleScene, placeBetsScene, mainGameScene;
+	private Scene titleScene, placeBetsScene, mainGameScene, historyPageScene;
 	private Text roundResults;
+	private Text results = new Text();
 	private Text displayWinningBets;
 	private Text playerTotalText, bankerTotalText;
 	private int bankerTotal, playerTotal;
@@ -80,9 +94,6 @@ public class BaccaratGame extends Application {
 		return winnings;
 	}
 
-
-	// totalWinning += evaluateWinnings()
-
 	public static void main(String[] args) {
 		System.out.println("Running...");
 		launch(args);
@@ -122,8 +133,10 @@ public class BaccaratGame extends Application {
 		titlePageRoot.setCenter(titlePageContent);
 
 		// PLACING BETS PAGE ---------------------------------------
-
 		roundResults = new Text("");
+		roundResults.setFont(RESULT_FONT);
+		roundResults.setFill(Color.WHITE);
+		
 
 		// Labels for betting boxes
 		Text playerTitle = new Text("PLAYER");
@@ -186,8 +199,6 @@ public class BaccaratGame extends Application {
 			primaryStage.setScene(mainGameScene);
 			// Create results Text of the round
 			roundResults.setText("");
-			roundResults.setFont(HEADING_FONT);
-			System.out.println("Current Bet: " + currentBet); // comment out later
 		});
 
 		BorderPane bettingPageRoot = new BorderPane();
@@ -200,15 +211,14 @@ public class BaccaratGame extends Application {
 		displayWinningBets.setFont(TEXT_FONT);
 
 		BorderPane gamePageRoot = new BorderPane();
+
 		HBox currentWinningsContainer = new HBox(5);
+		currentWinningsContainer.setAlignment(Pos.CENTER);
 
 		// CurrentWinnings Box
 		TextField currentWinningDisplay = new TextField();
 		currentWinningDisplay.setText(Double.toString(totalWinnings));
-
 		currentWinningsContainer.getChildren().addAll(displayWinningBets, currentWinningDisplay);
-
-
 
 		// Created instances of game logic and dealer
 		gameLogic = new BaccaratGameLogic();
@@ -229,16 +239,36 @@ public class BaccaratGame extends Application {
 			currentWinningDisplay.setText("");
 			roundResults.setText("");
 			primaryStage.setScene(placeBetsScene);
+			gameHistory.clear();
 		});
 		// Set menu bar at the top
 		gamePageRoot.setTop(menuBar);
 
 		// contains the results, cards, and totals
 		HBox mainGameContent = new HBox(200);
-		// holds the results
-		VBox resultsContainer = new VBox(50);
-		Text resultsLabel = new Text("RESULTS");
+		
+		VBox resultsContent = new VBox(50); // holds the result
+		Text resultsLabel = new Text("RESULTS"); // Label
 		resultsLabel.setFont(HEADING_FONT);
+
+		// Create the Rectangle for result display
+
+		StackPane resultBox = new StackPane();
+		resultBox.setPrefSize(300, 200);
+		resultBox.setStyle(
+				"-fx-background-color: linear-gradient(to bottom, #00796B, #005542), transparent;" +
+						"-fx-background-radius: 10;" +
+						"-fx-border-color: linear-gradient(to bottom, #004D40, #002E25);" +
+						"-fx-border-width: 2;" +
+						"-fx-border-radius: 10;" +
+						"-fx-padding: 10;"
+		);
+
+		resultBox.getChildren().addAll(roundResults);
+
+		resultsContent.getChildren().clear();
+		resultsContent.getChildren().addAll(resultsLabel, resultBox);
+
 		// Storing the cards and hand total respectively
 		VBox playersGameContent = new VBox(30);
 		VBox bankersGameContent = new VBox(30);
@@ -252,19 +282,22 @@ public class BaccaratGame extends Application {
 		drawCardButton.setFont(drawCardFont);
 
 		// Play Button - resets the cards and the result screen but also stores the result into history
-		Button startNewRound = getHelperButton("PLAY AGAIN");
-		startNewRound.setOnAction(e -> {
+		Button startNewRoundButton = getHelperButton("PLAY AGAIN");
+		startNewRoundButton.setOnAction(e -> {
 			// remove temporary game elements
 			playerHand.clear();
 			bankerHand.clear();
 			playersCardContainer.getChildren().clear();
 			bankersCardContainer.getChildren().clear();
-
-			// Create results Text of the round
+			
+			// reset results Text of the round
 			roundResults.setText("");
-			roundResults.setFont(HEADING_FONT);
-			resultsContainer.getChildren().clear();
-			resultsContainer.getChildren().add(resultsLabel);
+
+			resultBox.getChildren().clear();
+			resultBox.getChildren().addAll(roundResults);
+
+			resultsContent.getChildren().clear();
+			resultsContent.getChildren().addAll(resultsLabel, resultBox);
 
 			// Reset the player and banker totals;
 			playerTotal = 0;
@@ -274,7 +307,7 @@ public class BaccaratGame extends Application {
 
 			drawCardCounter = 0;
 			drawCardButton.setDisable(false);
-			startNewRound.setDisable(true);
+			startNewRoundButton.setDisable(true);
 			// return to betting scene to let user place new bets
 			primaryStage.setScene(placeBetsScene);
 		});
@@ -339,14 +372,23 @@ public class BaccaratGame extends Application {
 					String winner = gameLogic.whoWon(playerHand, bankerHand);
 					roundResults.setText("Winner: " + winner);
 					totalWinnings += evaluateWinnings();
+					results.setText("Player Total: " + playerTotal + " Banker Total: " + bankerTotal + ", " + winner + " \n " + roundResults.getText());
+					results.setFont(TEXT_FONT);
+					gameHistory.add(results);
+
+
+					resultBox.getChildren().clear();
+					resultBox.getChildren().addAll(roundResults);
+
+					resultsContent.getChildren().clear();
+					resultsContent.getChildren().addAll(resultsLabel, resultBox);
 
 					currentWinningDisplay.setText(Double.toString(totalWinnings));
-					// end game
 
 					// disable button
 					drawCardButton.setDisable(true);
 					// enable play again button
-					startNewRound.setDisable(false);
+					startNewRoundButton.setDisable(false);
 				}
 			}
 
@@ -397,35 +439,76 @@ public class BaccaratGame extends Application {
 				// Game over should now be over since all draws are exercised, display final result
 				String winner = gameLogic.whoWon(playerHand, bankerHand);
 				roundResults.setText("Winner: " + winner);
+				results.setText("Player Total: " + playerTotal + " Banker Total: " + bankerTotal + ", " + winner + " \n " + roundResults.getText());
+				results.setFont(TEXT_FONT);
+				gameHistory.add(results);
+
 				totalWinnings += evaluateWinnings();
+
+				resultBox.getChildren().clear();
+				resultBox.getChildren().addAll(roundResults);
+
+				resultsContent.getChildren().clear();
+				resultsContent.getChildren().addAll(resultsLabel, resultBox);
 
 				currentWinningDisplay.setText(Double.toString(totalWinnings));
 
 				// disable button
 				drawCardButton.setDisable(true);
 				// enable play again button
-				startNewRound.setDisable(false);
+				startNewRoundButton.setDisable(false);
 			}
+		});
+
+		VBox historyContent = new VBox(10);
+
+		Button historyButton = getHelperButton("HISTORY");
+		historyButton.setOnAction(e->{
+			// Creating a ListView to display the game history
+			ListView<Text> historyListView = new ListView<>();
+
+			List<Text> gameResults = gameHistory;
+
+			historyListView.getItems().clear();
+			historyListView.getItems().addAll(gameResults);
+			historyContent.getChildren().clear();
+			historyContent.getChildren().add(historyListView);
+			primaryStage.setScene(historyPageScene);
+
 		});
 
 		HBox gameBottomMenu = new HBox(150);
 		gameBottomMenu.setPadding(new Insets(20, 20, 20, 20));
-		gameBottomMenu.getChildren().addAll(drawCardButton, startNewRound, currentWinningsContainer);
+		gameBottomMenu.getChildren().addAll(historyButton, drawCardButton, startNewRoundButton, currentWinningsContainer);
 
-		resultsContainer.setAlignment(Pos.CENTER);
-		resultsContainer.getChildren().clear();
-		resultsContainer.getChildren().addAll(resultsLabel, roundResults);
+		resultsContent.setAlignment(Pos.CENTER);
+		resultsContent.getChildren().clear();
+		resultsContent.getChildren().addAll(resultsLabel, resultBox);
 
-		mainGameContent.getChildren().addAll(playersGameContent, resultsContainer, bankersGameContent);
+		mainGameContent.getChildren().addAll(playersGameContent, resultsContent, bankersGameContent);
 		mainGameContent.setAlignment(Pos.CENTER);
 
 		gamePageRoot.setCenter(mainGameContent);
 		gamePageRoot.setBottom(gameBottomMenu);
 
+
+		// HISTORY PAGE ---------------------------------------
+		BorderPane historyPageRoot = new BorderPane();
+
+		Button backToMainGameButton = getHelperButton("BACK");
+		backToMainGameButton.setOnAction(e -> {
+
+			primaryStage.setScene(mainGameScene);
+		});
+
+		historyPageRoot.setCenter(historyContent);
+		historyPageRoot.setBottom(backToMainGameButton);
+
 		// put root on the scene which goes on to the stage
 		titleScene = new Scene(titlePageRoot, 1280,720);
 		placeBetsScene = new Scene(bettingPageRoot, 1280, 720);
 		mainGameScene = new Scene(gamePageRoot, 1280, 720);
+		historyPageScene = new Scene(historyPageRoot, 1280, 720);
 
 		primaryStage.setScene(titleScene);
 		primaryStage.show();
@@ -458,7 +541,7 @@ public class BaccaratGame extends Application {
 	private Button getContinueButton() {
 		Button continueButton = new Button();
 		Text continueButtonTitle = new Text("Continue");
-		continueButton.setFont(HEADING_FONT);
+		continueButtonTitle.setFont(HEADING_FONT);
 		continueButton.setGraphic(continueButtonTitle);
 		continueButton.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
 				"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
@@ -482,7 +565,7 @@ public class BaccaratGame extends Application {
 	private Button getHelperButton(String label){
 		Button button = new Button();
 		Text buttonTitle = new Text(label);
-		button.setFont(TEXT_FONT);
+		buttonTitle.setFont(TEXT_FONT);
 		button.setGraphic(buttonTitle);
 		button.setStyle("-fx-background-color: white; -fx-background-radius: 20px; " +
 				"-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);");
